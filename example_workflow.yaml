@@ -1,0 +1,23 @@
+# Example workflow: Build a TODO API
+name: "Build TODO API"
+steps:
+  - role: architect
+    prompt: "Design a REST API for a todo list app with CRUD operations"
+    output: design.md
+    
+  - role: coder
+    prompt: "Implement the GET /todos endpoint based on the design"
+    input: design.md
+    output: get_todos.py
+    code_only: true
+    
+  - role: reviewer
+    prompt: "Review this code for security issues and bugs"
+    input: get_todos.py
+    output: review.md
+    
+  - role: tester
+    prompt: "Write pytest unit tests for this endpoint"
+    input: get_todos.py
+    output: test_get_todos.py
+    code_only: true

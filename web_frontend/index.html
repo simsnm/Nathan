@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nathan - Your AI Development Companion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: #e0e0e0; 
+        }
+        .container { background: #2d2d2d; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        h1 { color: #00ff00; text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #00ff00; font-weight: bold; }
+        input[type="file"], select, textarea, button {
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #555; 
+            border-radius: 4px; 
+            background: #1a1a1a; 
+            color: #e0e0e0; 
+            font-size: 14px;
+        }
+        textarea { 
+            min-height: 120px; 
+            font-family: 'Courier New', monospace; 
+            resize: vertical; 
+        }
+        button { 
+            background: #00ff00; 
+            color: #000; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: background 0.3s; 
+        }
+        button:hover { background: #00cc00; }
+        button:disabled { background: #666; cursor: not-allowed; }
+        .response { 
+            background: #0a0a0a; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 8px; 
+            border-left: 4px solid #00ff00; 
+        }
+        .response pre { 
+            white-space: pre-wrap; 
+            margin: 0; 
+            font-family: 'Courier New', monospace; 
+            font-size: 14px; 
+        }
+        .loading { 
+            text-align: center; 
+            color: #00ff00; 
+            font-style: italic; 
+            padding: 20px; 
+        }
+        .error { color: #ff4444; }
+        .cost { color: #888; font-size: 12px; margin-top: 10px; }
+        .agent-category { font-weight: bold; color: #00ff00; }
+        select option { background: #2d2d2d; color: #e0e0e0; }
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>👋 Hi, I'm Nathan!</h1>
+    <p style="text-align: center; color: #888;">Your AI development companion who actually gets you</p>
+
+    <!-- Authentication Section -->
+    <div class="container">
+        <div id="auth-section">
+            <div id="login-form">
+                <label for="email">📧 Email (optional - to save progress)</label>
+                <input type="email" id="email" placeholder="Enter email to track learning progress" style="margin-bottom: 10px;">
+                <button id="loginBtn" onclick="login()" style="background: #444; margin-bottom: 15px;">Login</button>
+            </div>
+
+            <div id="user-info" style="display: none; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a1a; padding: 10px; border-radius: 4px;">
+                    <span>👤 <span id="user-email"></span></span>
+                    <div>
+                        <span id="question-count" style="margin-right: 15px;"></span>
+                        <button onclick="viewHistory()" style="background: #444; margin-right: 10px;">History</button>
+                        <button onclick="logout()" style="background: #664444;">Logout</button>
+                    </div>
+                </div>
+                <div id="user-sessions" style="display: none; margin-top: 10px; max-height: 200px; overflow-y: auto; background: #1a1a1a; padding: 10px; border-radius: 4px;">
+                    <!-- Session history will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-group">
+            <label for="codeFile">📁 Upload Code File (optional)</label>
+            <input type="file" id="codeFile" accept=".py,.js,.java,.cpp,.c,.php,.go,.rs,.rb,.ts,.jsx,.vue,.html,.css,.sql,.sh,.yaml,.yml,.json,.xml,.md">
+        </div>
+
+        <div class="form-group">
+            <label for="agentRole">🤖 What should Nathan be today?</label>
+            <select id="agentRole">
+                <optgroup label="🎓 Learning & Mentorship" class="agent-category">
+                    <option value="mentor">Mentor - Senior developer who teaches while solving</option>
+                    <option value="tutor">Tutor - Interactive step-by-step teaching</option>
+                    <option value="clarifier">Clarifier - Understands your intent first</option>
+                </optgroup>
+                <optgroup label="💻 Development" class="agent-category">
+                    <option value="reviewer" selected>Reviewer - Finds bugs and security issues</option>
+                    <option value="coder">Coder - Writes implementation code</option>
+                    <option value="architect">Architect - Designs system architecture</option>
+                    <option value="tester">Tester - Writes test cases</option>
+                    <option value="documenter">Documenter - Creates documentation</option>
+                    <option value="optimizer">Optimizer - Improves performance</option>
+                </optgroup>
+                <optgroup label="🔬 Research" class="agent-category">
+                    <option value="researcher">Researcher - Finds docs and best practices</option>
+                </optgroup>
+                <optgroup label="🏁 CTF & Security" class="agent-category">
+                    <option value="reverse-engineer">Reverse Engineer - Binary analysis & assembly</option>
+                    <option value="crypto-analyst">Crypto Analyst - Cryptanalysis & cipher breaking</option>
+                    <option value="web-hacker">Web Hacker - Web security & OWASP Top 10</option>
+                    <option value="forensics-expert">Forensics Expert - Digital forensics & analysis</option>
+                    <option value="exploit-dev">Exploit Developer - Exploit dev & shellcode</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="question">💬 What can Nathan help you with?</label>
+            <textarea id="question" placeholder="Ask Nathan anything! Examples:
+• Nathan, find bugs in my code
+• Hey Nathan, teach me async/await
+• Nathan, review this for security issues
+• Nathan, help me design a REST API
+• Nathan, I'm stuck on this CTF challenge"></textarea>
+        </div>
+
+        <button id="submitBtn" onclick="askQuestion()">Ask Nathan</button>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        🤔 Nathan's thinking... This might take a moment for complex questions!
+    </div>
+
+    <div id="response"></div>
+
+    <script>
+        // Authentication state
+        let currentUser = null;
+        let currentToken = localStorage.getItem('auth_token');
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (currentToken) {
+                verifyToken();
+            }
+        });
+
+        async function login() {
+            const email = document.getElementById('email').value.trim();
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Login failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                currentToken = data.token;
+                currentUser = data.user;
+
+                localStorage.setItem('auth_token', currentToken);
+                updateAuthUI();
+                
+            } catch (error) {
+                alert(`Login failed: ${error.message}`);
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        }
+
+        async function verifyToken() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                if (response.ok) {
+                    currentUser = await response.json();
+                    updateAuthUI();
+                } else {
+                    // Token invalid, clear it
+                    logout();
+                }
+            } catch (error) {
+                logout();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            currentToken = null;
+            localStorage.removeItem('auth_token');
+            updateAuthUI();
+        }
+
+        function updateAuthUI() {
+            const loginForm = document.getElementById('login-form');
+            const userInfo = document.getElementById('user-info');
+            const userSessions = document.getElementById('user-sessions');
+
+            if (currentUser) {
+                loginForm.style.display = 'none';
+                userInfo.style.display = 'block';
+                document.getElementById('user-email').textContent = currentUser.email;
+                document.getElementById('question-count').textContent = `${currentUser.total_questions} questions | $${currentUser.total_cost.toFixed(3)} total`;
+                userSessions.style.display = 'none'; // Hide by default
+            } else {
+                loginForm.style.display = 'block';
+                userInfo.style.display = 'none';
+                userSessions.style.display = 'none';
+            }
+        }
+
+        async function viewHistory() {
+            if (!currentUser) return;
+
+            const userSessions = document.getElementById('user-sessions');
+            
+            if (userSessions.style.display === 'block') {
+                userSessions.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/sessions', {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const sessions = data.sessions;
+
+                    let html = '<h4>Recent Conversations:</h4>';
+                    if (sessions.length === 0) {
+                        html += '<p style="color: #888;">No conversations yet. Start asking questions!</p>';
+                    } else {
+                        sessions.slice(0, 10).forEach(session => {
+                            const date = new Date(session.created_at).toLocaleDateString();
+                            const title = session.title || 'Untitled conversation';
+                            html += `<div style="margin-bottom: 8px; padding: 8px; background: #2d2d2d; border-radius: 4px;">
+                                        <div style="font-weight: bold;">${title}</div>
+                                        <div style="font-size: 12px; color: #888;">${date} | $${session.total_cost.toFixed(3)}</div>
+                                    </div>`;
+                        });
+                    }
+                    userSessions.innerHTML = html;
+                    userSessions.style.display = 'block';
+                } else {
+                    alert('Failed to load conversation history');
+                }
+            } catch (error) {
+                alert('Error loading history: ' + error.message);
+            }
+        }
+
+        async function askQuestion() {
+            const fileInput = document.getElementById('codeFile');
+            const agentRole = document.getElementById('agentRole').value;
+            const question = document.getElementById('question').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const responseDiv = document.getElementById('response');
+
+            // Basic validation
+            if (!question) {
+                responseDiv.innerHTML = '<div class="response error">Please enter a question.</div>';
+                return;
+            }
+
+            // Show loading state
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            responseDiv.innerHTML = '';
+
+            try {
+                // Upload file if present
+                let fileId = null;
+                if (fileInput.files[0]) {
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+
+                    const uploadResponse = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!uploadResponse.ok) {
+                        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+                    }
+
+                    const uploadResult = await uploadResponse.json();
+                    if (!uploadResult.success) {
+                        throw new Error(uploadResult.error || 'File upload failed');
+                    }
+                    fileId = uploadResult.file_path;
+                }
+
+                // Send chat request with optional authentication
+                const headers = { 'Content-Type': 'application/json' };
+                if (currentToken) {
+                    headers['Authorization'] = `Bearer ${currentToken}`;
+                }
+
+                const chatResponse = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        message: question,
+                        role: agentRole,
+                        files: fileId ? [fileId] : [],
+                        auto_model: true
+                    })
+                });
+
+                if (!chatResponse.ok) {
+                    throw new Error(`Chat request failed: ${chatResponse.statusText}`);
+                }
+
+                const result = await chatResponse.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'AI request failed');
+                }
+
+                // Display response with Nathan's personality
+                const nathanPersonality = {
+                    'mentor': "Teacher Nathan",
+                    'reviewer': "Security Nathan", 
+                    'coder': "Coder Nathan",
+                    'architect': "Architect Nathan",
+                    'tester': "Tester Nathan",
+                    'tutor': "Tutor Nathan",
+                    'clarifier': "Thoughtful Nathan",
+                    'researcher': "Research Nathan",
+                    'documenter': "Writer Nathan",
+                    'optimizer': "Performance Nathan",
+                    'reverse-engineer': "Hacker Nathan",
+                    'crypto-analyst': "Crypto Nathan",
+                    'web-hacker': "Security Nathan",
+                    'forensics-expert': "Detective Nathan",
+                    'exploit-dev': "Exploit Nathan"
+                };
+                
+                const personality = nathanPersonality[agentRole] || "Nathan";
+                responseDiv.innerHTML = `
+                    <div class="response">
+                        <h3>💡 ${personality} says:</h3>
+                        <pre>${escapeHtml(result.response)}</pre>
+                        <div class="cost">
+                            Nathan used: ${result.model_used} | 
+                            Saved you: $${(0.06 - result.estimated_cost).toFixed(4)} | 
+                            Session: ${result.session_id.substring(0, 8)}...
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('Error:', error);
+                responseDiv.innerHTML = `
+                    <div class="response error">
+                        <h3>😅 Oops! Nathan hit a snag</h3>
+                        <p>${error.message}</p>
+                        <small>Nathan needs his server running on localhost:8000</small>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Ask Nathan';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Allow Enter key to submit (Ctrl+Enter for new line)
+        document.getElementById('question').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
+                e.preventDefault();
+                askQuestion();
+            }
+        });
+
+        // Auto-resize textarea
+        document.getElementById('question').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    </script>
+</body>
+</html>

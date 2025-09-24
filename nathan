@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""
+Nathan - Your AI development companion who actually gets you
+"""
+
+import sys
+import os
+import random
+from datetime import datetime
+
+# Add current directory to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from codechat import main as codechat_main
+
+# Nathan's personality responses
+NATHAN_GREETINGS = [
+    "👋 Hi! I'm Nathan. How can I help you today?",
+    "🤖 Nathan here! What are we building today?",
+    "💡 Hey there! Nathan's ready to help.",
+    "🚀 Nathan reporting for duty! What's the mission?",
+    "☕ Nathan's caffeinated and ready to code!",
+]
+
+NATHAN_THINKING = [
+    "🤔 Let me think about that...",
+    "🧠 Nathan's processing...",
+    "💭 Interesting question! Give me a sec...",
+    "🤓 Nathan's putting on his thinking cap...",
+    "⚙️ Analyzing that for you...",
+]
+
+NATHAN_SUCCESS = [
+    "✨ Nathan figured it out!",
+    "🎯 Got it! Here's what I found:",
+    "💡 Nathan has an answer!",
+    "🎉 Success! Check this out:",
+    "✅ Nathan's got you covered:",
+]
+
+NATHAN_ERRORS = {
+    "no_api_key": "🔑 Hey, I need API keys to use my full brain! Running in demo mode for now...",
+    "api_error": "😅 The AI service is being difficult. Let me try again...",
+    "file_not_found": "🔍 I can't find that file. Did you spell it right?",
+    "general": "😬 Oops! Nathan hit a snag. Let's try that again!",
+}
+
+def nathan_say(message, style="normal"):
+    """Nathan speaks with personality"""
+    if style == "greeting":
+        print(f"\n{random.choice(NATHAN_GREETINGS)}\n")
+    elif style == "thinking":
+        print(f"\n{random.choice(NATHAN_THINKING)}")
+    elif style == "success":
+        print(f"\n{random.choice(NATHAN_SUCCESS)}\n")
+    elif style == "error":
+        print(f"\n{message}\n")
+    else:
+        print(message)
+
+def nathan_help():
+    """Show Nathan's help in a friendly way"""
+    help_text = """
+    🤖 Nathan's Command Guide
+    ═══════════════════════════════════════════
+    
+    Talk to Nathan:
+      nathan "your question"           Ask Nathan anything
+      nathan review file.py            Get a code review
+      nathan learn "topic"             Learn something new
+      nathan code "what to build"      Get code written
+      nathan ctf challenge.bin         CTF help mode
+    
+    Nathan's Personalities (--role):
+      mentor          Teaching & guidance
+      reviewer        Security & code quality
+      coder          Write implementation
+      architect      System design help
+      tester         Generate tests
+      hacker         CTF & security specialist
+      
+    Options:
+      --demo         Try Nathan without API keys
+      --verbose      Nathan explains his thinking
+      --cheap        Nathan uses only cheap models
+      --tutorial     Step-by-step teaching mode
+      
+    Examples:
+      nathan "explain async/await"
+      nathan review mycode.py --paranoid
+      nathan learn --role hacker "buffer overflows"
+      nathan code "REST API with FastAPI"
+      
+    Nathan saves you money by picking the right AI model for each task!
+    Add your API keys to .env for full functionality.
+    
+    Made with ❤️  | Star Nathan on GitHub!
+    """
+    print(help_text)
+
+def main():
+    """Nathan's main entry point"""
+    # Show help if no arguments
+    if len(sys.argv) == 1 or sys.argv[1] in ['-h', '--help', 'help']:
+        nathan_help()
+        return
+    
+    # Greeting for certain commands
+    if any(cmd in ' '.join(sys.argv) for cmd in ['review', 'learn', 'code', 'ctf']):
+        nathan_say("", "greeting")
+    
+    # Special Nathan commands
+    if sys.argv[1] == "review" and len(sys.argv) > 2:
+        # Code review mode
+        nathan_say("", "thinking")
+        sys.argv = ['nathan', sys.argv[2], '--role', 'reviewer']
+        
+    elif sys.argv[1] == "learn" and len(sys.argv) > 2:
+        # Learning mode  
+        nathan_say("", "thinking")
+        topic = ' '.join(sys.argv[2:])
+        sys.argv = ['nathan', f'teach me about {topic}', '--role', 'mentor']
+        
+    elif sys.argv[1] == "code" and len(sys.argv) > 2:
+        # Code generation mode
+        nathan_say("", "thinking")
+        request = ' '.join(sys.argv[2:])
+        sys.argv = ['nathan', f'write code for {request}', '--role', 'coder']
+        
+    elif sys.argv[1] == "ctf" and len(sys.argv) > 2:
+        # CTF mode
+        nathan_say("🏁 Nathan's CTF mode activated!", "greeting")
+        sys.argv = ['nathan', sys.argv[2], '--role', 'reverse-engineer', '--ctf-mode']
+    
+    # Add some personality to demo mode
+    if '--demo' in sys.argv:
+        nathan_say("🎮 Nathan's running in demo mode - no API keys needed!", "normal")
+    
+    try:
+        # Call the original codechat with Nathan's personality
+        result = codechat_main()
+        
+        # Success message
+        if result is None or result == 0:
+            if not any(x in sys.argv for x in ['--help', '-h']):
+                nathan_say("", "success")
+                
+    except FileNotFoundError:
+        nathan_say(NATHAN_ERRORS["file_not_found"], "error")
+    except KeyError as e:
+        if "API" in str(e):
+            nathan_say(NATHAN_ERRORS["no_api_key"], "error")
+    except Exception as e:
+        nathan_say(f"{NATHAN_ERRORS['general']}\nError: {e}", "error")
+
+if __name__ == "__main__":
+    main()

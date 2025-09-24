@@ -1,0 +1,8 @@
+# Core (choose based on which providers you'll use)
+anthropic>=0.3.0  # For Claude
+openai>=1.0.0     # For GPT models  
+requests          # For Ollama (local)
+
+# Environment and Configuration
+python-dotenv>=1.0.0  # For .env file loading
+pyyaml>=6.0           # For workflow files
