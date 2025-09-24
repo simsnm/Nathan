@@ -4,8 +4,11 @@
 [![Code Size](https://img.shields.io/github/languages/code-size/simsnm/Nathan)](https://github.com/simsnm/Nathan)
 [![Last Commit](https://img.shields.io/github/last-commit/simsnm/Nathan)](https://github.com/simsnm/Nathan)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Development Time](https://img.shields.io/badge/built%20in-6%20hours-brightgreen)](./ABOUT.md)
 
 An AI development assistant that reduces API costs by 90% through intelligent model routing.
+
+> **Built in 6 hours** by someone who learned to code 3 months ago with a broken hand. [Read the full story →](./ABOUT.md)
 
 ## Features
 
@@ -15,6 +18,16 @@ An AI development assistant that reduces API costs by 90% through intelligent mo
 - **Session Persistence**: Remembers conversations across sessions
 - **Web Interface**: Clean, responsive UI
 - **CLI Tool**: Direct command-line access
+
+## ⚡ Built Different
+
+This isn't your typical GitHub project:
+- **Development time**: 6 hours total
+- **Developer experience**: 3 months (first project!)
+- **Productivity**: 500+ lines/hour of production code
+- **Result**: Fully deployed, production-ready platform
+
+Nathan was built using the same AI-assisted workflow it now provides to others.
 
 ## Quick Start
 
@@ -185,9 +198,18 @@ MIT License - see [LICENSE](LICENSE) file.
 
 ## Author
 
-Created by Nathan M. Sims
+**Nathan M. Sims** - Learning to code at 10x speed with AI
+
+- **Experience**: 3 months (started after breaking hand)
+- **First Project**: This one - Nathan
+- **Method**: AI-assisted development
+- **Philosophy**: Build what you need, ship fast, learn faster
+- **Contact**: nathan.m.sims@gmail.com
+
+[Read the full story →](./ABOUT.md)
 
 ## Links
 
 - GitHub: https://github.com/simsnm/Nathan
-- Website: https://nathanmsims.com (coming soon)
+- Website: https://nathanmsims.com (launching tonight!)
+- Story: [How I built this in 6 hours](./ABOUT.md)
