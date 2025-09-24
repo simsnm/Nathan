@@ -9,6 +9,9 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from datetime import datetime
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -29,7 +32,8 @@ try:
     from database import (init_db, create_session, get_user_sessions, get_session, 
                          add_to_conversation, update_user_stats)
     from demo_mode import is_demo_mode, get_demo_provider, DEMO_RESPONSES
-    from rate_limiter import rate_limiter
+    from rate_limiter_persistent import rate_limiter
+    from config import config
     print("✅ Successfully imported codechat functionality")
 except ImportError as e:
     print(f"❌ Failed to import codechat: {e}")
@@ -75,9 +79,9 @@ validate_environment()
 # Initialize database
 init_db()
 
-# SAFETY CONFIGURATION - Default to safe mode!
-DEMO_MODE = os.getenv("DEMO_MODE", "true").lower() == "true"
-ENABLE_API_CALLS = os.getenv("ENABLE_API_CALLS", "false").lower() == "true"
+# SAFETY CONFIGURATION - Use centralized config
+DEMO_MODE = config.DEMO_MODE
+ENABLE_API_CALLS = config.ENABLE_API_CALLS
 
 print(f"🛡️ Safety Mode: DEMO_MODE={DEMO_MODE}, ENABLE_API_CALLS={ENABLE_API_CALLS}")
 if DEMO_MODE:
@@ -87,12 +91,8 @@ elif ENABLE_API_CALLS:
 else:
     print("✅ Safe mode - API calls disabled")
 
-# Get CORS origins from environment
-cors_origins = os.getenv('CORS_ORIGINS', '["http://localhost:3000", "http://127.0.0.1:3000"]')
-try:
-    cors_origins = eval(cors_origins) if isinstance(cors_origins, str) else cors_origins
-except:
-    cors_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+# Get CORS origins from config
+cors_origins = config.CORS_ORIGINS
 
 app = FastAPI(
     title="CodeChat API",
@@ -147,6 +147,48 @@ async def get_status():
         "api_calls_enabled": ENABLE_API_CALLS,
         "rate_limits": status,
         "message": "Nathan is ready to help!" if status["requests_remaining"] > 0 else "Nathan is resting. Try again tomorrow!"
+    }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring"""
+    try:
+        # Check database connection
+        from database import get_user_by_id
+        # Try a simple query
+        test_query = get_user_by_id(1) if os.path.exists(os.getenv("DATABASE_PATH", "./data/sessions.db")) else None
+        
+        # Check rate limiter
+        if not hasattr(rate_limiter, 'check_limits'):
+            raise Exception("Rate limiter not initialized")
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "version": "1.0.0",
+            "mode": "demo" if DEMO_MODE else "full"
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unhealthy", "error": str(e), "timestamp": datetime.now().isoformat()}
+        )
+
+@app.get("/metrics")
+async def metrics():
+    """Metrics endpoint for monitoring"""
+    return {
+        "timestamp": datetime.now().isoformat(),
+        "requests": {
+            "total_daily": rate_limiter.daily_requests,
+            "requests_per_ip": len(rate_limiter.requests)
+        },
+        "costs": {
+            "daily_total": rate_limiter.daily_cost,
+            "daily_limit": rate_limiter.MAX_DAILY_COST,
+            "percentage_used": round((rate_limiter.daily_cost / rate_limiter.MAX_DAILY_COST * 100), 2) if rate_limiter.MAX_DAILY_COST > 0 else 0
+        },
+        "mode": "demo" if DEMO_MODE else "full"
     }
 
 @app.get("/api/agents", response_model=AgentListResponse)
@@ -473,6 +515,51 @@ async def workflow_endpoint(request: WorkflowRequest):
             success=False,
             error=str(e)
         )
+
+# Admin endpoints with proper security
+class AdminRequest(BaseModel):
+    admin_token: str
+
+class AdminShutdownRequest(AdminRequest):
+    confirm: bool = False
+
+@app.post("/api/admin/costs")
+async def get_admin_costs(request: AdminRequest):
+    """Check current costs (admin only) - POST for security"""
+    if request.admin_token != config.ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    return {
+        "daily_cost": f"${rate_limiter.daily_cost:.4f}",
+        "daily_requests": rate_limiter.daily_requests,
+        "daily_limit": f"${rate_limiter.MAX_DAILY_COST:.2f}",
+        "percentage_used": f"{(rate_limiter.daily_cost / rate_limiter.MAX_DAILY_COST * 100):.1f}%",
+        "status": "🟢 Safe" if rate_limiter.daily_cost < 0.80 else "🔴 Warning"
+    }
+
+@app.post("/api/admin/shutdown")
+async def emergency_shutdown(request: AdminShutdownRequest):
+    """Emergency kill switch for API calls"""
+    if request.admin_token != config.ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    if not request.confirm:
+        raise HTTPException(status_code=400, detail="Must confirm shutdown")
+    
+    global ENABLE_API_CALLS
+    ENABLE_API_CALLS = False
+    print("🚨 EMERGENCY SHUTDOWN - API calls disabled")
+    
+    return {"status": "APIs disabled", "mode": "demo", "timestamp": datetime.now().isoformat()}
+
+@app.post("/api/admin/reset-limits")
+async def reset_rate_limits(request: AdminRequest):
+    """Reset rate limits (admin only)"""
+    if request.admin_token != config.ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    rate_limiter.reset_daily()
+    return {"status": "Rate limits reset", "timestamp": datetime.now().isoformat()}
 
 if __name__ == "__main__":
     import uvicorn

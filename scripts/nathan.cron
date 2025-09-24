@@ -1,0 +1,17 @@
+# Nathan Cron Jobs
+# Add to crontab with: crontab nathan.cron
+
+# Daily database backup at 2 AM
+0 2 * * * /var/www/nathan/scripts/backup_database.sh >> /var/nathan/backup.log 2>&1
+
+# Reset rate limits daily at midnight
+0 0 * * * curl -X POST http://localhost:8000/api/admin/reset-limits -H "Content-Type: application/json" -d '{"admin_token":"YOUR_ADMIN_PASSWORD"}' >> /var/nathan/reset.log 2>&1
+
+# Health check every 5 minutes
+*/5 * * * * curl -s http://localhost:8000/health || systemctl restart nathan
+
+# Database optimization weekly (Sunday 3 AM)
+0 3 * * 0 sqlite3 /var/nathan/nathan.db "VACUUM; ANALYZE;" >> /var/nathan/optimize.log 2>&1
+
+# Clean old logs monthly
+0 4 1 * * find /var/nathan -name "*.log" -mtime +30 -delete

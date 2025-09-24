@@ -5,6 +5,138 @@ import time
 import os
 
 DEMO_RESPONSES = {
+    # Programming concepts with actual value
+    "sql_injection": """SQL injection occurs when user input is concatenated directly into SQL queries:
+
+**Vulnerable Code:**
+```sql
+SELECT * FROM users WHERE id = '" + user_input + "'
+```
+
+**Attack Example:**
+If user_input is: `1' OR '1'='1`
+Query becomes: `SELECT * FROM users WHERE id = '1' OR '1'='1'`
+This returns ALL users!
+
+**Prevention:**
+```python
+# Use parameterized queries
+cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+```
+Always use prepared statements, never concatenate user input!""",
+
+    "big_o": """Big O notation describes algorithm complexity:
+
+• **O(1)** - Constant time (array[5], dict lookup)
+• **O(log n)** - Logarithmic (binary search)
+• **O(n)** - Linear (simple loop)
+• **O(n log n)** - Linearithmic (merge sort)
+• **O(n²)** - Quadratic (nested loops)
+• **O(2ⁿ)** - Exponential (recursive fibonacci)
+
+**Example:**
+```python
+def find_duplicates(arr):  # O(n²) - BAD
+    for i in range(len(arr)):
+        for j in range(i+1, len(arr)):
+            if arr[i] == arr[j]:
+                return True
+                
+def find_duplicates_optimized(arr):  # O(n) - GOOD
+    seen = set()
+    for item in arr:
+        if item in seen:
+            return True
+        seen.add(item)
+```""",
+
+    "async_await": """Async/await enables concurrent programming:
+
+**Synchronous (Slow):**
+```python
+def fetch_all():
+    result1 = fetch_api_1()  # Wait 1s
+    result2 = fetch_api_2()  # Wait 1s
+    result3 = fetch_api_3()  # Wait 1s
+    return [result1, result2, result3]  # Total: 3s
+```
+
+**Asynchronous (Fast):**
+```python
+async def fetch_all():
+    results = await asyncio.gather(
+        fetch_api_1(),  # All three
+        fetch_api_2(),  # run at the
+        fetch_api_3()   # same time!
+    )
+    return results  # Total: 1s
+```
+3x faster for I/O operations!""",
+
+    "jwt": """JWT (JSON Web Tokens) for stateless auth:
+
+**Structure:** Header.Payload.Signature
+
+**Example:**
+```python
+import jwt
+from datetime import datetime, timedelta
+
+# Create token
+payload = {
+    'user_id': 123,
+    'exp': datetime.utcnow() + timedelta(hours=24)
+}
+token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
+# Verify token
+try:
+    data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+    user_id = data['user_id']
+except jwt.ExpiredSignatureError:
+    # Token expired
+except jwt.InvalidTokenError:
+    # Invalid token
+```
+
+⚠️ Never store sensitive data - payload is Base64, not encrypted!""",
+
+    "docker": """Docker containerizes apps for consistent deployment:
+
+**Dockerfile:**
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8000
+CMD ["python", "main.py"]
+```
+
+**Commands:**
+```bash
+docker build -t myapp .          # Build image
+docker run -d -p 8000:8000 myapp # Run container
+docker logs <container-id>        # View logs
+docker exec -it <id> /bin/bash   # Debug inside
+```
+
+**docker-compose.yml:**
+```yaml
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://db:5432/mydb
+    depends_on:
+      - db
+  db:
+    image: postgres:14
+```""",
+
     "reviewer": """🔍 Code Review Results:
 
 **Security Issues Found:**
