@@ -1,241 +1,177 @@
-# Meet Nathan 👋
+# Nathan
 
-> **Your AI development companion who actually gets you**
+An AI development assistant that reduces API costs by 90% through intelligent model routing.
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Nathan's Ready](https://img.shields.io/badge/Nathan-Ready%20to%20Help-brightgreen.svg)](#quick-start)
-[![Saves Money](https://img.shields.io/badge/Saves-90%25%20on%20AI%20costs-yellow.svg)](#why-nathan)
+## Features
 
-```
-    _   __      __  __              
-   / | / /___ _/ /_/ /_  ____ _____ 
-  /  |/ / __ `/ __/ __ \/ __ `/ __ \
- / /|  / /_/ / /_/ / / / /_/ / / / /
-/_/ |_/\__,_/\__/_/ /_/\__,_/_/ /_/ 
-                                     
-Your AI buddy who knows which AI to ask 🤖
-```
+- **15 Specialized Agents**: From code review to CTF challenges
+- **Smart Routing**: Automatically selects the cheapest capable model
+- **Demo Mode**: Try without API keys
+- **Session Persistence**: Remembers conversations across sessions
+- **Web Interface**: Clean, responsive UI
+- **CLI Tool**: Direct command-line access
 
-## Hi, I'm Nathan! 🤖
-
-I'm your AI development mentor who's smart about costs. I know when to use GPT-3.5 for simple questions and when to bring in Claude Opus for the complex stuff. I'll save you money while teaching you to be a better developer.
-
-## 🚀 Quick Start (Nathan's ready in 30 seconds!)
+## Quick Start
 
 ```bash
-# 1. Get Nathan
-git clone https://github.com/yourusername/nathan.git
-cd nathan
+# Clone repository
+git clone https://github.com/simsnm/Nathan.git
+cd Nathan
 
-# 2. Say hi to Nathan (no API keys needed for demo!)
-./nathan "Hey Nathan, help me understand async/await"
+# Try demo mode (no API keys needed)
+./nathan demo "Explain async/await"
 
-# 3. Or chat with Nathan on the web
-cd web && python server.py
-# Visit http://localhost:8000 - Nathan's waiting!
+# Or run web interface
+cd web_app && python main.py
+# Visit http://localhost:8000
 ```
 
-**That's it!** Nathan works in demo mode without any setup. Add your API keys later when you're ready.
+## Installation
 
-## 💬 Talk to Nathan
+### Requirements
+- Python 3.11+
+- pip
 
-Nathan understands different ways of asking for help:
-
+### Setup
 ```bash
-# Nathan reviews your code
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure API keys (optional)
+cp .env.example .env
+# Edit .env with your API keys
+```
+
+## Usage
+
+### CLI Examples
+```bash
+# Code review
 ./nathan review code.py
-"I found 3 security issues and 2 performance improvements..."
 
-# Nathan teaches you
+# Learning mode
 ./nathan learn "buffer overflows"
-"Let me explain buffer overflows step by step..."
 
-# Nathan helps with CTF challenges  
-./nathan ctf --binary challenge.exe
-"This looks like a classic stack overflow vulnerability..."
+# CTF help
+./nathan ctf challenge.bin
 
-# Nathan writes code
-./nathan code "REST API for user management"
-"Here's a clean FastAPI implementation..."
+# General questions
+./nathan "How do I implement a REST API?"
 ```
 
-## 🧠 What Makes Nathan Special
+### Available Agents
 
-### Nathan's 15 Personalities
+| Agent | Purpose | Example Use Case |
+|-------|---------|-----------------|
+| `mentor` | Teaching concepts | Learning new technologies |
+| `reviewer` | Code analysis | Security and quality checks |
+| `coder` | Implementation | Writing new features |
+| `architect` | System design | Planning architecture |
+| `tester` | Test generation | Creating test suites |
+| `reverse-engineer` | Binary analysis | CTF challenges |
+| `crypto-analyst` | Cryptography | Cipher breaking |
+| `web-hacker` | Web security | OWASP testing |
 
-Nathan adapts his personality based on what you need:
+### Cost Optimization
 
-| When you need... | Nathan becomes... | Example |
-|-----------------|------------------|---------|
-| 💻 Code written | **Coder Nathan** | "Here's that implementation with proper error handling..." |
-| 🔍 Code reviewed | **Security Nathan** | "Hold up! SQL injection risk on line 42..." |
-| 📚 To learn | **Teacher Nathan** | "Let me explain this concept with an example..." |
-| 🏗️ Architecture | **Architect Nathan** | "For this scale, I'd recommend microservices..." |
-| 🧪 Tests | **Tester Nathan** | "Let's write comprehensive test coverage..." |
-| 🏁 CTF help | **Hacker Nathan** | "Classic buffer overflow! Here's the exploit..." |
+Nathan automatically routes queries to minimize costs:
 
-### Nathan Saves You Money 💰
+- Simple questions → GPT-3.5 Turbo ($0.001)
+- Code review → Claude Haiku ($0.003)
+- Complex analysis → GPT-4 ($0.03)
+- Specialized tasks → Claude Opus ($0.06)
 
-```python
-# Nathan's smart routing algorithm
-if question == "What's 2+2?":
-    nathan.use("gpt-3.5")  # $0.001
-elif question.involves("code review"):
-    nathan.use("claude-haiku")  # $0.003  
-elif question.needs("complex reasoning"):
-    nathan.use("gpt-4")  # $0.03
-else:
-    nathan.pick_best_model()  # Nathan decides!
+Average savings: 90% compared to using premium models exclusively.
 
-# Result: 90% cheaper than always using GPT-4!
-```
+## Web Interface
 
-### Nathan Remembers You 🧠
+The web interface provides:
+- Agent selection dropdown
+- File upload support
+- Conversation history
+- User accounts (optional)
+- Cost tracking
 
-```python
-# Monday
-You: "Nathan, I'm building a chat app"
-Nathan: "Great! Let's start with WebSockets..."
+## Deployment
 
-# Friday  
-You: "Nathan, how do I scale this?"
-Nathan: "For your chat app, you'll want Redis for pub/sub..."
-# Nathan remembered!
-```
-
-## 🎮 Try Nathan Right Now (No Setup!)
-
-Nathan comes with demo mode - no API keys needed:
-
+### Docker
 ```bash
-# Ask Nathan anything
-./nathan demo "Explain closures in JavaScript"
-
-# Nathan's personalities in action
-./nathan demo --role hacker "Find the vulnerability"
-./nathan demo --role teacher "Teach me recursion"
-./nathan demo --role reviewer "Review this code"
+docker-compose up -d
 ```
 
-## 📊 Nathan's Stats
+### Production
+See [DEPLOYMENT.md](DEPLOYMENT.md) for full production deployment guide.
 
-- **Lines of code**: 2,935 (Nathan's lean and efficient)
-- **Response time**: <2 seconds (Nathan's quick)
-- **Money saved**: 90% on average (Nathan's frugal)
-- **Personalities**: 15 specialized modes (Nathan's versatile)
-- **Setup time**: 30 seconds (Nathan's easy)
-
-## 🏗️ How Nathan Works
-
-```
-You → Nathan → [Nathan's Brain] → Right AI Model → Smart Response
-         ↓
-   "Hmm, this needs GPT-4"
-         ↓
-   Routes to cheapest capable model
-         ↓
-   Saves you money + teaches you
-```
-
-## 🚀 Deploy Nathan to Production
-
-Nathan's ready for the real world:
-
+### Quick Deploy
 ```bash
-# Option 1: Your own server ($5/month)
-ssh your-server
-git clone https://github.com/yourusername/nathan
-./scripts/deploy-nathan.sh
-
-# Option 2: Cloud (free tier available)
-railway up  # or
-flyctl deploy  # or
-docker-compose up
+./scripts/deploy.sh production your-domain.com
 ```
 
-Nathan handles the rest! Full guide: [DEPLOY_NATHAN.md](docs/deploy.md)
+## Configuration
 
-## 🤝 Help Nathan Learn New Tricks
+Environment variables (`.env` file):
 
-Nathan's always learning! Teach him something new:
+```env
+# API Keys
+ANTHROPIC_API_KEY=your-key
+OPENAI_API_KEY=your-key
+GOOGLE_API_KEY=your-key
 
-```bash
-# Add a new personality
-./nathan learn-personality "devops"
-
-# Improve Nathan's responses
-./nathan improve --role reviewer
-
-# Share your improvements
-git push origin feature/nathan-learns-kubernetes
+# Optional
+DEMO_MODE=false
+DATABASE_PATH=./data/sessions.db
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how to help Nathan grow.
+## Architecture
 
-## 📈 Nathan's Origin Story
-
-I started as a 100+ file "revolutionary AI IDE" that didn't work. My creator stripped away all the complexity and rebuilt me in 3 days as Nathan - a simple, helpful AI companion who just works.
-
-**Lessons Nathan learned:**
-- Simple is better than complex
-- Helping users matters more than fancy features  
-- Every line of code should earn its place
-- Personality makes technology approachable
-
-## 🎯 Nathan's Roadmap
-
-- [x] Nathan learns 15 personalities
-- [x] Nathan goes online (web interface)
-- [x] Nathan remembers conversations
-- [x] Nathan works without API keys (demo mode)
-- [ ] Nathan learns from your codebase
-- [ ] Nathan integrates with VS Code
-- [ ] Nathan joins your Slack
-- [ ] Nathan learns your team's style
-
-## 💬 Talk About Nathan
-
-- **Issues**: [Nathan's GitHub Issues](https://github.com/yourusername/nathan/issues)
-- **Discord**: [Chat with Nathan's friends](https://discord.gg/nathan)
-- **Twitter**: [@NathanAI](https://twitter.com/nathanai) 
-
-## 🏆 What People Say About Nathan
-
-> "Nathan saved me $500 this month on API costs!" - Happy Developer
-
-> "Finally, an AI that teaches instead of just giving answers" - Learning Developer
-
-> "Nathan found a critical security bug in production" - Grateful CTO
-
-> "Nathan is my CTF secret weapon" - InfoSec Student
-
-## 📜 License
-
-Nathan is MIT licensed - use him however you want!
-
-## ⭐ Star Nathan!
-
-If Nathan helped you, give him a star! It makes Nathan happy and helps others find him.
-
-```bash
-# Nathan's happiness level
-Stars < 10: "I'm just getting started! 😊"
-Stars < 100: "People like me! 🎉"
-Stars < 1000: "I'm helping so many developers! 🚀"
-Stars >= 1000: "We're changing how developers work! 🌟"
+```
+Nathan/
+├── codechat.py          # Core CLI engine
+├── nathan              # CLI wrapper
+├── demo_mode.py        # Demo responses
+├── web_app/           
+│   ├── main.py        # FastAPI backend
+│   ├── auth.py        # Authentication
+│   └── database.py    # Session storage
+├── web_frontend/      
+│   └── index.html     # Web interface
+└── scripts/           # Deployment scripts
 ```
 
----
+## API Documentation
 
-<div align="center">
+### Chat Endpoint
+```http
+POST /api/chat
+Content-Type: application/json
 
-**Nathan - The AI mentor who gets you**
+{
+  "message": "Your question",
+  "role": "mentor",
+  "files": []
+}
+```
 
-Made with ❤️ and way too much coffee ☕
+### List Agents
+```http
+GET /api/agents
+```
 
-[Chat with Nathan](https://nathan.ai) • [Nathan's Docs](docs/) • [Report a Bug](issues/) • [Teach Nathan](contribute/)
+Full API documentation available at `/docs` when running the web server.
 
-*"Hi, I'm Nathan. How can I help you today?"* 🤖
+## Contributing
 
-</div>
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file.
+
+## Author
+
+Created by Nathan M. Sims
+
+## Links
+
+- GitHub: https://github.com/simsnm/Nathan
+- Website: https://nathanmsims.com (coming soon)
