@@ -1,10 +1,5 @@
 # Nathan
 
-[![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Code Size](https://img.shields.io/github/languages/code-size/simsnm/Nathan)](https://github.com/simsnm/Nathan)
-[![Last Commit](https://img.shields.io/github/last-commit/simsnm/Nathan)](https://github.com/simsnm/Nathan)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 An AI development assistant that reduces API costs by 90% through intelligent model routing.
 
 ## Features
@@ -31,22 +26,11 @@ cd web_app && python main.py
 # Visit http://localhost:8000
 ```
 
-## Requirements
-
-Check your environment before installation:
-
-```bash
-# Check Python version (need 3.11+)
-python --version
-
-# Check pip is installed
-pip --version
-
-# Check git is installed
-git --version
-```
-
 ## Installation
+
+### Requirements
+- Python 3.11+
+- pip
 
 ### Setup
 ```bash

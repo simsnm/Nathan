@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -29,6 +29,7 @@ try:
     from database import (init_db, create_session, get_user_sessions, get_session, 
                          add_to_conversation, update_user_stats)
     from demo_mode import is_demo_mode, get_demo_provider, DEMO_RESPONSES
+    from rate_limiter import rate_limiter
     print("✅ Successfully imported codechat functionality")
 except ImportError as e:
     print(f"❌ Failed to import codechat: {e}")
@@ -74,6 +75,18 @@ validate_environment()
 # Initialize database
 init_db()
 
+# SAFETY CONFIGURATION - Default to safe mode!
+DEMO_MODE = os.getenv("DEMO_MODE", "true").lower() == "true"
+ENABLE_API_CALLS = os.getenv("ENABLE_API_CALLS", "false").lower() == "true"
+
+print(f"🛡️ Safety Mode: DEMO_MODE={DEMO_MODE}, ENABLE_API_CALLS={ENABLE_API_CALLS}")
+if DEMO_MODE:
+    print("✅ Running in DEMO MODE - No API costs!")
+elif ENABLE_API_CALLS:
+    print("⚠️ API calls ENABLED - Costs will be incurred!")
+else:
+    print("✅ Safe mode - API calls disabled")
+
 # Get CORS origins from environment
 cors_origins = os.getenv('CORS_ORIGINS', '["http://localhost:3000", "http://127.0.0.1:3000"]')
 try:
@@ -106,9 +119,35 @@ def get_session_dir() -> str:
     os.makedirs(session_dir, exist_ok=True)
     return session_dir
 
+def get_client_ip(request: Request) -> str:
+    """Get client IP address (handles proxy headers)"""
+    # Check for proxy headers first
+    forwarded = request.headers.get("X-Forwarded-For")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip
+    
+    # Fallback to direct connection
+    return request.client.host if request.client else "127.0.0.1"
+
 @app.get("/")
 async def root():
-    return {"message": "CodeChat API - CTF Learning Mentor", "version": "1.0.0"}
+    return {"message": "Nathan - AI Development Companion", "version": "1.0.0", "mode": "demo" if DEMO_MODE else "full"}
+
+@app.get("/api/status")
+async def get_status():
+    """Public status endpoint for monitoring"""
+    status = rate_limiter.get_status()
+    return {
+        "status": "online",
+        "mode": "demo" if DEMO_MODE else "full",
+        "api_calls_enabled": ENABLE_API_CALLS,
+        "rate_limits": status,
+        "message": "Nathan is ready to help!" if status["requests_remaining"] > 0 else "Nathan is resting. Try again tomorrow!"
+    }
 
 @app.get("/api/agents", response_model=AgentListResponse)
 async def list_agents():
@@ -202,9 +241,19 @@ async def upload_file(file: UploadFile = File(...)):
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(
     request: ChatRequest,
+    req: Request,
     user: Optional[dict] = Depends(get_current_user_optional)
 ):
     """Main chat endpoint - mirrors CLI functionality exactly"""
+    
+    # Get client IP for rate limiting
+    client_ip = get_client_ip(req)
+    
+    # Check rate limits
+    allowed, limit_message = rate_limiter.check_limits(client_ip)
+    if not allowed:
+        raise HTTPException(status_code=429, detail=limit_message)
+    
     try:
         # Generate session ID if not provided
         session_id = request.context_session or str(uuid.uuid4())
@@ -243,12 +292,13 @@ async def chat_endpoint(
                     request.provider = provider_name
                     break
             
-            if not api_key:
-                # Use demo mode when no API keys available
-                if is_demo_mode():
-                    demo_provider = get_demo_provider()
-                    demo_response = DEMO_RESPONSES.get(request.role or "mentor", DEMO_RESPONSES["mentor"])
-                    estimated_cost = 0.0
+            if not api_key or DEMO_MODE or not ENABLE_API_CALLS:
+                # Use demo mode when: no API keys, DEMO_MODE is on, or API calls disabled
+                demo_provider = get_demo_provider()
+                demo_response = DEMO_RESPONSES.get(request.role or "mentor", DEMO_RESPONSES["mentor"])
+                estimated_cost = 0.0
+                
+                print(f"📝 Demo response for: {client_ip} - Role: {request.role}")
                 
                 # Handle user session persistence even in testing
                 if user:
@@ -293,6 +343,12 @@ async def chat_endpoint(
         
         # Track cost (reuse CLI logic)
         estimated_cost = COST_TRACKER.get("total_cost", 0.0)
+        
+        # Add cost to rate limiter for tracking
+        rate_limiter.add_cost(estimated_cost)
+        
+        # Log the API call
+        print(f"💰 API call from {client_ip}: ${estimated_cost:.4f} - Role: {request.role}")
         
         # Handle user session persistence
         if user:

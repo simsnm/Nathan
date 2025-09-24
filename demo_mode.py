@@ -2,6 +2,7 @@
 
 import random
 import time
+import os
 
 DEMO_RESPONSES = {
     "reviewer": """🔍 Code Review Results:
